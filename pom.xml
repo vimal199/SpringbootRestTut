@@ -20,8 +20,8 @@
     </properties>
     <modules>
         <module>nonrest</module>
-        <!--<module>rest</module>
-        <module>evolution</module>
+        <module>rest</module>
+        <!--<module>evolution</module>
         <module>links</module>-->
     </modules>
     <dependencies>
