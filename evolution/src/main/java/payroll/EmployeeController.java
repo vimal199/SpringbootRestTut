@@ -1,20 +1,24 @@
-package org.springframework.guides.rest;
+package payroll;
 
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.hateoas.EntityModel;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 class EmployeeController {
 
     private final EmployeeRepository repository;
+    private final EmployeeModelAssembler assembler;
 
-    EmployeeController(EmployeeRepository repository) {
+    EmployeeController(EmployeeRepository repository, EmployeeModelAssembler assembler) {
         this.repository = repository;
+        this.assembler = assembler;
     }
 
 
@@ -23,10 +27,7 @@ class EmployeeController {
     @GetMapping("/employees")
     CollectionModel<EntityModel<Employee>>  all() {
         List<EntityModel<Employee>> employees= repository.findAll().stream().map(
-            employee -> {
-                return  EntityModel.of(employee,linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
-                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
-            }
+           assembler::toModel
         ).collect(Collectors.toList());
         return CollectionModel.of(employees, linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
     }
@@ -44,9 +45,7 @@ class EmployeeController {
 
         Employee employee= repository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
-        return EntityModel.of(employee,linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
-                linkTo(methodOn(EmployeeController.class).all()).withRel("employees")
-                );
+        return assembler.toModel(employee);
     }
 
     @PutMapping("/employees/{id}")
